@@ -1,0 +1,16 @@
+.env
+*.session
+*.session-journal
+*.session-wal
+*.session-shm
+__pycache__/
+.venv/
+downloads/
+clone_tracker.json
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.egg-info/
+docs/
+
