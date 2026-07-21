@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Channel & Topic Forwarder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #090a10;
+            --surface: rgba(16, 17, 26, 0.75);
+            --surface-2: rgba(26, 27, 42, 0.65);
+            --surface-hover: rgba(32, 34, 52, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-accent: rgba(124, 92, 252, 0.4);
+            --text: #e8e8f2;
+            --text-dim: #8b8ba8;
+            --accent: #7c5cfc;
+            --accent-light: #a78bfa;
+            --accent-glow: rgba(124, 92, 252, 0.25);
+            --green: #34d399;
+            --green-glow: rgba(52, 211, 153, 0.2);
+            --red: #f87171;
+            --red-glow: rgba(248, 113, 113, 0.2);
+            --amber: #fbbf24;
+            --radius-lg: 16px;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(124, 92, 252, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(52, 211, 153, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .header-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo {
+            height: 36px;
+            width: 36px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(124, 92, 252, 0.4));
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--red);
+        }
+
+        .status-dot.online {
+            background: var(--green);
+            box-shadow: 0 0 10px var(--green);
+        }
+
+        /* cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-light);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* channel & topic selector */
+        .select-group {
+            margin-bottom: 16px;
+        }
+
+        .select-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+
+        .select-group select {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b8ba8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            transition: all 0.2s;
+        }
+
+        .select-group select:focus,
+        .select-group select:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        /* Custom Transfer Mode Visual Cards */
+        .mode-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+            margin-bottom: 18px;
+        }
+
+        .mode-card {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+
+        .mode-card input[type="radio"] {
+            display: none;
+        }
+
+        .mode-card:hover {
+            border-color: var(--border-accent);
+            background: var(--surface-hover);
+        }
+
+        .mode-card.active {
+            background: rgba(124, 92, 252, 0.12);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(124, 92, 252, 0.2);
+        }
+
+        .mode-icon {
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+
+        .mode-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .mode-desc {
+            font-size: 0.73rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+            line-height: 1.35;
+        }
+
+        /* Checkbox styling */
+        .options-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-top: 4px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        /* buttons */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c5cfc 0%, #6366f1 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(124, 92, 252, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(124, 92, 252, 0.45);
+        }
+
+        .btn-danger {
+            background: rgba(248, 113, 113, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: rgba(248, 113, 113, 0.25);
+        }
+
+        .btn-sm {
+            padding: 7px 12px;
+            font-size: 0.78rem;
+            border-radius: 6px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-sm:hover:not(:disabled) {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        .btn:disabled, .btn-sm:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* progress section */
+        .job-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            background: rgba(124, 92, 252, 0.15);
+            border: 1px solid var(--accent-glow);
+            color: var(--accent-light);
+        }
+
+        .job-status.idle {
+            background: var(--surface-2);
+            border-color: var(--border);
+            color: var(--text-dim);
+        }
+
+        .job-status.done {
+            background: var(--green-glow);
+            border-color: rgba(52, 211, 153, 0.4);
+            color: var(--green);
+        }
+
+        .job-status.error {
+            background: var(--red-glow);
+            border-color: rgba(248, 113, 113, 0.4);
+            color: var(--red);
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .progress-wrap {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-outer {
+            height: 8px;
+            background: var(--surface-2);
+            border-radius: 100px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #7c5cfc 0%, #34d399 100%);
+            border-radius: 100px;
+            transition: width 0.3s ease;
+        }
+
+        /* File Progress details */
+        .file-progress {
+            display: none;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-bottom: 20px;
+        }
+
+        .file-progress.active {
+            display: block;
+        }
+
+        .file-progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+
+        .file-progress-phase {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+
+        .file-progress-phase.downloading { color: var(--amber); }
+        .file-progress-phase.uploading { color: var(--green); }
+
+        .file-progress-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 8px;
+        }
+
+        .file-bar-outer {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .file-bar-inner {
+            height: 100%;
+            width: 0%;
+            background: var(--accent);
+            border-radius: 100px;
+            transition: width 0.2s;
+        }
+
+        .file-bar-inner.downloading { background: var(--amber); }
+        .file-bar-inner.uploading { background: var(--green); }
+
+        /* stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .stat-box {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-value.green { color: var(--green); }
+        .stat-value.amber { color: var(--amber); }
+        .stat-value.red { color: var(--red); }
+
+        .stat-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        /* log feed */
+        .log-feed {
+            background: rgba(10, 10, 16, 0.8);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.78rem;
+            line-height: 1.6;
+        }
+
+        .log-feed .entry {
+            color: var(--text-dim);
+            word-break: break-all;
+        }
+
+        .log-feed .entry.success { color: var(--green); }
+        .log-feed .entry.fail { color: var(--red); }
+
+        .last-error {
+            font-size: 0.78rem;
+            color: var(--red);
+            margin-bottom: 12px;
+            background: rgba(248, 113, 113, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        .last-error.muted {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            padding: 0;
+            margin-bottom: 12px;
+        }
+
+        /* tracker info */
+        .tracker-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .tracker-info strong {
+            color: var(--text);
+        }
+
+        .size-result {
+            display: none;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-top: 10px;
+            margin-bottom: 16px;
+        }
+
+        .size-result.active { display: block; }
+
+        .size-result-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .size-breakdown {
+            display: grid;
+            grid-template-columns: auto auto auto;
+            gap: 6px 12px;
+            font-size: 0.78rem;
+            color: var(--text-dim);
+        }
+
+        @media (max-width: 600px) {
+            .mode-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- header -->
+        <div class="header">
+            <div class="header-title-wrap">
+                <img src="/assets/telegram_logo.png" alt="Telegram Logo" class="header-logo">
+                <h1 class="header-title">Telegram Cloner & Forwarder</h1>
+            </div>
+            <div class="status-badge">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">connecting...</span>
+            </div>
+        </div>
+
+        <!-- channel & transfer config -->
+        <div class="card" id="configCard">
+            <div class="card-title">
+                <span>Source & Destination</span>
+                <span style="font-size: 0.7rem; font-weight: normal; color: var(--text-dim);">Select channels or forum topics</span>
+            </div>
+
+            <!-- source channel -->
+            <div class="select-group">
+                <label for="sourceSelect">Source Channel (Clone From)</label>
+                <select id="sourceSelect" onchange="onSourceChange()"></select>
+                <button class="btn-sm" id="estimateBtn" onclick="estimateSize()" disabled>estimate channel size</button>
+            </div>
+
+            <!-- source topic selector -->
+            <div class="select-group" id="sourceTopicGroup" style="display: none; margin-top: 10px;">
+                <label for="sourceTopicSelect">Source Forum Topic (Filter)</label>
+                <select id="sourceTopicSelect">
+                    <option value="">all topics (entire channel)</option>
+                </select>
+            </div>
+
+            <div id="sizeResult" class="size-result"></div>
+
+            <!-- destination channel -->
+            <div class="select-group">
+                <label for="destSelect">Destination Channel (Clone To)</label>
+                <select id="destSelect" onchange="onDestChange()">
+                    <option value="">loading channels...</option>
+                </select>
+            </div>
+
+            <!-- destination topic selector -->
+            <div class="select-group" id="destTopicGroup" style="display: none; margin-top: 10px;">
+                <label for="destTopicSelect">Destination Forum Topic (Target)</label>
+                <select id="destTopicSelect">
+                    <option value="">general / default topic</option>
+                </select>
+            </div>
+
+            <!-- transfer mode tiles -->
+            <div class="select-group" style="margin-top: 20px;">
+                <label>Transfer Method</label>
+                <div class="mode-grid">
+                    <label class="mode-card active" id="modeCardForward">
+                        <input type="radio" name="transferMode" value="forward" checked onchange="updateModeUI()">
+                        <div class="mode-icon">⚡</div>
+                        <div>
+                            <div class="mode-title">Plain Forward</div>
+                            <div class="mode-desc">Instant server-side copy. No local media download.</div>
+                        </div>
+                    </label>
+                    <label class="mode-card" id="modeCardReupload">
+                        <input type="radio" name="transferMode" value="reupload" onchange="updateModeUI()">
+                        <div class="mode-icon">💾</div>
+                        <div>
+                            <div class="mode-title">Download & Re-upload</div>
+                            <div class="mode-desc">Downloads files to local disk first.</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- options -->
+            <div class="options-row">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div class="select-group" style="margin-bottom: 0;">
+                        <label for="maxMessagesInput">Batch Limit (Files)</label>
+                        <input type="number" id="maxMessagesInput" placeholder="e.g. 100 (blank = all)" min="1"
+                            style="width:100%; padding:10px 14px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:0.9rem; outline:none;">
+                    </div>
+                    <div class="select-group" style="margin-bottom: 0;">
+                        <label for="batchDelayInput">Anti-Ban Delay (Sec)</label>
+                        <input type="number" id="batchDelayInput" value="5" placeholder="e.g. 5" min="0" step="0.5"
+                            style="width:100%; padding:10px 14px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:0.9rem; outline:none;">
+                    </div>
+                </div>
+                <label class="checkbox-label" style="margin-top: 4px;">
+                    <input type="checkbox" id="dropAuthorCheck" checked>
+                    Hide "Forwarded from" header (clean copy)
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="largestFirstCheck">
+                    Largest files first (re-upload mode)
+                </label>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" id="startBtn" disabled onclick="startClone()">
+                    <span>▶ Start Clone</span>
+                </button>
+                <button class="btn btn-danger" id="stopBtn" disabled onclick="stopClone()">
+                    <span>⏹ Stop</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- progress card -->
+        <div class="card">
+            <div class="card-title">Live Monitor</div>
+
+            <div class="job-status idle" id="jobStatus">
+                <div class="pulse"></div>
+                <span id="jobStatusText">idle</span>
+            </div>
+
+            <div class="progress-info">
+                <span id="progressText">0 / 0 messages</span>
+                <span id="progressPct">0%</span>
+            </div>
+
+            <div class="progress-wrap">
+                <div class="progress-bar-outer">
+                    <div class="progress-bar-inner" id="progressBar"></div>
+                </div>
+            </div>
+
+            <div class="last-error muted" id="lastError">no errors</div>
+
+            <div class="file-progress" id="fileProgress">
+                <div class="file-progress-header">
+                    <span class="file-progress-phase" id="filePhase">downloading</span>
+                    <span class="file-progress-size">
+                        <span id="fileSpeed" style="margin-right: 8px; color: var(--accent);">0 B/s</span>
+                        <span id="fileSize">0 B / 0 B</span>
+                    </span>
+                </div>
+                <div class="file-progress-name" id="fileName">—</div>
+                <div class="file-bar-outer">
+                    <div class="file-bar-inner" id="fileBar"></div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value green" id="statCloned">0</div>
+                    <div class="stat-label">cloned</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value amber" id="statSkipped">0</div>
+                    <div class="stat-label">skipped</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value amber" id="statSkippedLimit">0</div>
+                    <div class="stat-label">over limit</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value red" id="statFailed">0</div>
+                    <div class="stat-label">failed</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">total</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- log card -->
+        <div class="card">
+            <div class="card-title">Activity Console</div>
+            <div class="log-feed" id="logFeed">
+                <div class="entry" style="color: var(--text-dim)">waiting for clone job...</div>
+            </div>
+        </div>
+
+        <!-- tracker card -->
+        <div class="card">
+            <div class="card-title">Clone Database</div>
+            <div class="tracker-info">
+                <span>total cloned: <strong id="trackerTotal">—</strong></span>
+                <span>last run: <strong id="trackerLastRun">—</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        let evtSource = null;
+        let logCount = 0;
+        let jobRunning = false;
+        let sseRetries = 0;
+        let sseReconnectTimer = null;
+        let pollTimer = null;
+        let lastErrorAt = null;
+        let lastSkipAt = null;
+        let lastJobState = null;
+
+        function updateModeUI() {
+            const selected = document.querySelector('input[name="transferMode"]:checked')?.value || 'forward';
+            const cardFwd = $('modeCardForward');
+            const cardRe = $('modeCardReupload');
+            if (cardFwd && cardRe) {
+                if (selected === 'forward') {
+                    cardFwd.classList.add('active');
+                    cardRe.classList.remove('active');
+                } else {
+                    cardRe.classList.add('active');
+                    cardFwd.classList.remove('active');
+                }
+            }
+        }
+
+        // -- init --
+        async function init() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                if (data.logged_in) {
+                    $('statusDot').classList.add('online');
+                    $('statusText').textContent = `@${data.user.username || data.user.name}`;
+                } else {
+                    $('statusText').textContent = 'not connected';
+                }
+
+                if (data.tracker) {
+                    $('trackerTotal').textContent = data.tracker.total_cloned;
+                    $('trackerLastRun').textContent = data.tracker.last_run
+                        ? new Date(data.tracker.last_run).toLocaleString()
+                        : 'never';
+                }
+
+                if (data.job && data.job.running) {
+                    jobRunning = true;
+                    $('startBtn').disabled = true;
+                    $('stopBtn').disabled = false;
+                    setJobState('running');
+                    if (data.job.last_stats) {
+                        updateStats(data.job.last_stats);
+                    }
+                    connectSSE();
+                } else {
+                    $('stopBtn').disabled = true;
+                }
+            } catch (e) {
+                $('statusText').textContent = 'error';
+            }
+
+            loadChannels();
+            startPolling();
+        }
+
+        async function loadChannels() {
+            try {
+                const res = await fetch('/api/channels');
+                const data = await res.json();
+
+                if (data.channels) {
+                    const opts = data.channels.map(c =>
+                        `<option value="${c.id}">${c.title}${c.members ? ` (${c.members})` : ''}${c.username ? ` @${c.username}` : ''}</option>`
+                    ).join('');
+
+                    const placeholder = '<option value="">— select channel —</option>';
+                    $('sourceSelect').innerHTML = placeholder + opts;
+                    $('destSelect').innerHTML = placeholder + opts;
+
+                    if (!jobRunning) {
+                        $('startBtn').disabled = false;
+                    }
+                    $('estimateBtn').disabled = false;
+                }
+            } catch (e) {
+                $('sourceSelect').innerHTML = '<option value="">failed to load</option>';
+                $('destSelect').innerHTML = '<option value="">failed to load</option>';
+            }
+        }
+
+        // -- periodic status poll (fallback when SSE drops) --
+        function startPolling() {
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(pollStatus, 8000);
+        }
+
+        async function pollStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                if (data.tracker) {
+                    $('trackerTotal').textContent = data.tracker.total_cloned;
+                    $('trackerLastRun').textContent = data.tracker.last_run
+                        ? new Date(data.tracker.last_run).toLocaleString()
+                        : 'never';
+                }
+
+                if (data.job && data.job.running) {
+                    if (!jobRunning) {
+                        jobRunning = true;
+                        $('startBtn').disabled = true;
+                        $('stopBtn').disabled = false;
+                        setJobState('running');
+                        connectSSE();
+                    }
+                    if (data.job.last_stats && !evtSource) {
+                        updateStats(data.job.last_stats);
+                    }
+                } else if (jobRunning) {
+                    jobRunning = false;
+                    const finalStats = data.job && data.job.stats;
+                    if (finalStats && finalStats.status === 'error') {
+                        setJobState('error');
+                    } else {
+                        setJobState('done');
+                    }
+                    if (finalStats) updateStats(finalStats);
+                    cleanup();
+                    refreshTracker();
+                }
+            } catch (e) { }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        async function fetchTopics(channelId) {
+            if (!channelId) return { is_forum: false, topics: [] };
+            try {
+                const res = await fetch(`/api/channel/topics?channel_id=${encodeURIComponent(channelId)}`);
+                return await res.json();
+            } catch (e) {
+                return { is_forum: false, topics: [], error: e.message };
+            }
+        }
+
+        async function onSourceChange() {
+            const cid = $('sourceSelect').value;
+            const group = $('sourceTopicGroup');
+            const select = $('sourceTopicSelect');
+            if (!cid) {
+                group.style.display = 'none';
+                select.innerHTML = '<option value="">all topics (entire channel)</option>';
+                return;
+            }
+
+            group.style.display = 'block';
+            select.innerHTML = '<option value="">loading topics...</option>';
+
+            const data = await fetchTopics(cid);
+            if (data.is_forum) {
+                if (data.topics && data.topics.length > 0) {
+                    const opts = data.topics.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (ID: ${t.id})</option>`).join('');
+                    select.innerHTML = '<option value="">all topics (entire channel)</option>' + opts;
+                } else if (data.error) {
+                    select.innerHTML = `<option value="">error: ${escapeHtml(data.error)}</option>`;
+                } else {
+                    select.innerHTML = '<option value="">no topics found in this group</option>';
+                }
+            } else {
+                group.style.display = 'none';
+                select.innerHTML = '<option value="">all topics (entire channel)</option>';
+            }
+        }
+
+        async function onDestChange() {
+            const cid = $('destSelect').value;
+            const group = $('destTopicGroup');
+            const select = $('destTopicSelect');
+            if (!cid) {
+                group.style.display = 'none';
+                select.innerHTML = '<option value="">general / default topic</option>';
+                return;
+            }
+
+            group.style.display = 'block';
+            select.innerHTML = '<option value="">loading topics...</option>';
+
+            const data = await fetchTopics(cid);
+            if (data.is_forum) {
+                if (data.topics && data.topics.length > 0) {
+                    const opts = data.topics.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (ID: ${t.id})</option>`).join('');
+                    select.innerHTML = '<option value="">general / default topic</option>' + opts;
+                } else if (data.error) {
+                    select.innerHTML = `<option value="">error: ${escapeHtml(data.error)}</option>`;
+                } else {
+                    select.innerHTML = '<option value="">no topics found in this group</option>';
+                }
+            } else {
+                group.style.display = 'none';
+                select.innerHTML = '<option value="">general / default topic</option>';
+            }
+        }
+
+        // -- clone controls --
+        async function startClone() {
+            const source = $('sourceSelect').value;
+            const dest = $('destSelect').value;
+
+            if (!source || !dest) return alert('pick both channels');
+            if (source === dest) return alert('source and dest must be different');
+
+            const source_topic_id = $('sourceTopicGroup').style.display !== 'none' ? $('sourceTopicSelect').value : null;
+            const dest_topic_id = $('destTopicGroup').style.display !== 'none' ? $('destTopicSelect').value : null;
+            const mode = document.querySelector('input[name="transferMode"]:checked')?.value || 'forward';
+            const drop_author = $('dropAuthorCheck').checked;
+            const max_messages = $('maxMessagesInput').value ? parseInt($('maxMessagesInput').value) : null;
+            const batch_delay = $('batchDelayInput').value ? parseFloat($('batchDelayInput').value) : 5.0;
+
+            $('startBtn').disabled = true;
+            $('stopBtn').disabled = false;
+            $('logFeed').innerHTML = '';
+            logCount = 0;
+
+            try {
+                const res = await fetch('/api/clone/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source,
+                        dest,
+                        largest_first: $('largestFirstCheck').checked,
+                        source_topic_id: source_topic_id || null,
+                        dest_topic_id: dest_topic_id || null,
+                        mode,
+                        drop_author,
+                        max_messages,
+                        batch_delay,
+                    }),
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.error);
+                    $('startBtn').disabled = false;
+                    $('stopBtn').disabled = true;
+                    return;
+                }
+
+                jobRunning = true;
+                setJobState('running');
+                connectSSE();
+            } catch (e) {
+                alert('failed to start: ' + e.message);
+                $('startBtn').disabled = false;
+            }
+        }
+
+        async function stopClone() {
+            $('stopBtn').disabled = true;
+            try {
+                await fetch('/api/clone/stop', { method: 'POST' });
+                addLog('stop signal sent', 'fail');
+            } catch (e) {
+                addLog('stop request failed', 'fail');
+            }
+        }
+
+        // -- SSE with auto-reconnect --
+        function connectSSE() {
+            if (sseReconnectTimer) {
+                clearTimeout(sseReconnectTimer);
+                sseReconnectTimer = null;
+            }
+            if (evtSource) evtSource.close();
+
+            evtSource = new EventSource('/api/clone/progress');
+            sseRetries = 0;
+
+            evtSource.onmessage = (e) => {
+                sseRetries = 0;
+                const data = JSON.parse(e.data);
+                if (data.heartbeat) return;
+
+                if (data.error) {
+                    setJobState('error');
+                    addLog(`error: ${data.error}`, 'fail');
+                    jobRunning = false;
+                    cleanup();
+                    return;
+                }
+
+                updateStats(data);
+
+                if (data.current_msg) {
+                    addLog(`msg #${data.current_msg} → cloned`, 'success');
+                }
+
+                if (data.last_error_at && data.last_error_at !== lastErrorAt) {
+                    lastErrorAt = data.last_error_at;
+                    const wait = data.last_error_wait ? ` (next retry in ${Math.round(data.last_error_wait)}s)` : '';
+                    addLog(`retry msg #${data.last_error_msg_id} attempt ${data.last_error_attempt}: ${data.last_error}${wait}`, 'fail');
+                }
+
+                if (data.last_skip_at && data.last_skip_at !== lastSkipAt) {
+                    lastSkipAt = data.last_skip_at;
+                    const size = data.last_skip_size_human || '—';
+                    const limit = data.last_skip_limit_human || '—';
+                    const name = data.last_skip_filename ? ` (${data.last_skip_filename})` : '';
+                    addLog(`skipped msg #${data.last_skip_msg_id}${name} — ${size} > ${limit}`, 'fail');
+                }
+
+                if (data.status === 'retrying' || data.status === 'flood_wait') {
+                    setJobState(data.status === 'flood_wait' ? 'flood_wait' : 'running');
+                }
+
+                if (data.status === 'watching') {
+                    setJobState('watching');
+                    if (lastJobState !== 'watching') {
+                        addLog('watching for new messages...', 'success');
+                    }
+                }
+
+                if (data.status === 'completed' || data.status === 'stopped') {
+                    setJobState(data.status === 'completed' ? 'done' : 'idle');
+                    addLog(data.status === 'completed' ? 'clone complete' : 'clone stopped', 'success');
+                    jobRunning = false;
+                    cleanup();
+                    refreshTracker();
+                }
+            };
+
+            evtSource.onerror = () => {
+                if (!jobRunning) return;
+
+                evtSource.close();
+                evtSource = null;
+                sseRetries++;
+                const delay = Math.min(1000 * Math.pow(2, sseRetries - 1), 15000);
+                addLog(`sse dropped, reconnecting in ${(delay / 1000).toFixed(0)}s...`, 'fail');
+                sseReconnectTimer = setTimeout(() => {
+                    if (jobRunning) connectSSE();
+                }, delay);
+            };
+        }
+
+        function cleanup() {
+            if (sseReconnectTimer) {
+                clearTimeout(sseReconnectTimer);
+                sseReconnectTimer = null;
+            }
+            if (evtSource) { evtSource.close(); evtSource = null; }
+            $('startBtn').disabled = false;
+            $('stopBtn').disabled = true;
+        }
+
+        // -- ui updates --
+        function updateStats(s) {
+            $('statCloned').textContent = s.cloned || 0;
+            $('statSkipped').textContent = s.skipped || 0;
+            $('statSkippedLimit').textContent = s.skipped_over_limit || 0;
+            $('statFailed').textContent = s.failed || 0;
+            $('statTotal').textContent = s.total || 0;
+
+            const processed = s.processed || 0;
+            const total = s.total || 0;
+            const pct = total ? Math.round((processed / total) * 100) : 0;
+            $('progressBar').style.width = pct + '%';
+            $('progressText').textContent = `${processed} / ${total} messages`;
+            $('progressPct').textContent = pct + '%';
+
+            const fp = s.file_progress;
+            const fpEl = $('fileProgress');
+            if (fp && fp.total > 0) {
+                fpEl.classList.add('active');
+                $('filePhase').textContent = fp.phase === 'uploading' ? '↑ uploading' : '↓ downloading';
+                $('filePhase').className = 'file-progress-phase ' + fp.phase;
+                $('fileName').textContent = fp.filename || '—';
+                $('fileSize').textContent = `${fp.current_human} / ${fp.total_human}`;
+                $('fileSpeed').textContent = fp.speed_human || '—';
+                const filePct = Math.round((fp.current / fp.total) * 100);
+                $('fileBar').style.width = filePct + '%';
+                $('fileBar').className = 'file-bar-inner ' + fp.phase;
+            } else {
+                fpEl.classList.remove('active');
+            }
+
+            if (s.last_error) {
+                const wait = s.last_error_wait ? ` | next retry in ${Math.round(s.last_error_wait)}s` : '';
+                $('lastError').textContent = `msg #${s.last_error_msg_id} attempt ${s.last_error_attempt} — ${s.last_error}${wait}`;
+                $('lastError').classList.remove('muted');
+            } else {
+                $('lastError').textContent = 'no errors';
+                $('lastError').classList.add('muted');
+            }
+        }
+
+        function setJobState(state) {
+            const el = $('jobStatus');
+            el.className = 'job-status ' + (state === 'running' || state === 'watching' ? '' : state === 'done' ? 'done' : state === 'error' ? 'error' : 'idle');
+            const labels = { running: 'cloning...', watching: 'live sync', done: 'complete', idle: 'idle', error: 'error', stopped: 'stopped', flood_wait: 'flood wait...' };
+            $('jobStatusText').textContent = labels[state] || state;
+            lastJobState = state;
+        }
+
+        function addLog(text, cls) {
+            const entry = document.createElement('div');
+            entry.className = `entry ${cls || ''}`;
+            entry.textContent = text;
+            const feed = $('logFeed');
+            if (feed.firstChild) {
+                feed.insertBefore(entry, feed.firstChild);
+            } else {
+                feed.appendChild(entry);
+            }
+            logCount++;
+            if (logCount > 200 && feed.lastChild) feed.removeChild(feed.lastChild);
+        }
+
+        async function refreshTracker() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                if (data.tracker) {
+                    $('trackerTotal').textContent = data.tracker.total_cloned;
+                    $('trackerLastRun').textContent = data.tracker.last_run
+                        ? new Date(data.tracker.last_run).toLocaleString()
+                        : 'never';
+                }
+            } catch (e) { }
+        }
+
+        async function estimateSize() {
+            const channelId = $('sourceSelect').value;
+            if (!channelId) return alert('pick a source channel first');
+
+            const btn = $('estimateBtn');
+            const resultEl = $('sizeResult');
+
+            btn.disabled = true;
+            btn.textContent = 'scanning...';
+            resultEl.classList.remove('active');
+
+            try {
+                const res = await fetch(`/api/channel/size?channel_id=${encodeURIComponent(channelId)}`);
+                const data = await res.json();
+
+                if (data.error) {
+                    resultEl.innerHTML = `<div style="color: var(--red); font-size: 0.8rem;">${data.error}</div>`;
+                    resultEl.classList.add('active');
+                    return;
+                }
+
+                let breakdownHTML = '';
+                const order = ['video', 'document', 'photo', 'audio', 'voice', 'video_note', 'sticker', 'gif', 'text'];
+                const types = Object.keys(data.breakdown).sort((a, b) => {
+                    const ai = order.indexOf(a), bi = order.indexOf(b);
+                    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+                });
+
+                for (const t of types) {
+                    const info = data.breakdown[t];
+                    breakdownHTML += `<span class="type-label">${t}</span>`;
+                    breakdownHTML += `<span class="type-count">${info.count}</span>`;
+                    breakdownHTML += `<span class="type-size">${info.size_human || '—'}</span>`;
+                }
+
+                resultEl.innerHTML = `
+                    <div class="size-result-header">
+                        <span class="size-result-title">${data.channel_title} — ${data.total_messages} messages</span>
+                        <span class="size-result-total">${data.total_media_size_human}</span>
+                    </div>
+                    <div class="size-breakdown">${breakdownHTML}</div>
+                `;
+                resultEl.classList.add('active');
+            } catch (e) {
+                resultEl.innerHTML = `<div style="color: var(--red); font-size: 0.8rem;">failed: ${e.message}</div>`;
+                resultEl.classList.add('active');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'estimate channel size';
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
