@@ -55,7 +55,7 @@ PHONE=+1234567890
 Launch the web application:
 
 ```bash
-python src/telegram_clone/main.py
+python src/Telegram-old-chat-cloner/main.py
 ```
 
 Open **`http://localhost:5000`** in your browser to access the dashboard.
@@ -66,13 +66,13 @@ Run in CLI mode:
 
 ```bash
 # Interactive CLI mode
-python src/telegram_clone/main.py --cli
+python src/Telegram-old-chat-cloner/main.py --cli
 
 # High-speed batch forward with anti-ban pacing (100 msgs/batch, 5s delay)
-python src/telegram_clone/main.py --cli --mode forward --batch-delay 5.0 --max-messages 100
+python src/Telegram-old-chat-cloner/main.py --cli --mode forward --batch-delay 5.0 --max-messages 100
 
 # Clone specific forum topics
-python src/telegram_clone/main.py --cli --source-topic 7 --dest-topic 12
+python src/Telegram-old-chat-cloner/main.py --cli --source-topic 7 --dest-topic 12
 ```
 
 ---
@@ -90,7 +90,7 @@ docker run -it --rm \
   --env-file .env \
   -p 5000:5000 \
   -v $(pwd):/app \
-  telegram-clone
+  Telegram-old-chat-cloner
 ```
 
 ---
