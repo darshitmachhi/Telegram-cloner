@@ -1,100 +1,128 @@
-# Telegram-clone-old-messages
-📨 Clone old Telegram messages from a source chat to a destination chat while preserving chronological order. 🚀 Supports text, media, and documents, with resume capability, rate limiting, progress tracking, and reliable error handling for seamless chat migration and archival.
-# [Open Source] High-Speed Telegram Channel & Forum Topic Forwarder with Anti-Ban Pacing, Web UI & Resume Support
+<h1 align="center">
+    <samp>Telegram Cloner </samp>
+</h1>
 
-Hey everyone! 👋
+<p align="center">
+    A script to copy all content from a Telegram channel.  <br />
+    It retrieves and saves all messages, including text, images, and links, from a specified Telegram channel for easy backup and access.
+</p>
 
-I wanted to share an updated, open-source tool for cloning/forwarding Telegram channels, groups, and **Forum Topics** with server-side speed, zero local media downloads, and built-in anti-ban pacing.
 
-Whether you're backing up course groups, organizing forum threads, or migrating large channels, this tool handles everything with high-speed batch forwarding and a clean Web Dashboard.
-
----
-
-### ✨ Key Features
-
-- **⚡ Server-Side Plain Forwarding**: Forwards messages directly on Telegram's servers (`ForwardMessagesRequest`). **Zero local media downloads**, zero disk space required, and original media quality preserved.
-- **📌 Telegram Forum Topics Support**: Filter source topic threads and target specific destination topics in Telegram Forum Supergroups.
-- **🚀 High-Speed Batch Engine**: Sends up to **100 messages per single Telegram API call** (50x–100x faster than single-message forwarders).
-- **🛡️ Anti-Ban Batch Pacing**: Built-in inter-batch delay (default: `5.0s`) to prevent rate limits (`FloodWait`) or account bans.
-- **⏸️ Automatic Pause & Resume**: All progress is tracked per message ID in a database. If paused or restarted, it **never starts from scratch**—it automatically skips sent messages and resumes right from where it left off.
-- **🔒 SQLite WAL Concurrency**: Configured with WAL journal mode & 60s busy-timeouts to prevent `database is locked` errors.
-- **🎨 Glassmorphism Web UI**: Includes a real-time SSE progress monitor, live activity console, and visual transfer mode tiles (`http://localhost:5000`).
 
 ---
 
-## 🛠️ Step-by-Step Setup Guide
+## ✨ Features
 
-### Step 1: Clone the Repository & Install Dependencies
+- 📋 Clone any **Telegram channel or group** (supports both public & private).
+- 🔄 You **must be a member** of the source channel or group to copy its content.
+- 🛠 Automatically handles text, images, PDFs, and videos for efficient backup.
+
+---
+
+### 📂 Clone this Repository
+
+```sh
+git clone https://github.com/darshitmachhi/Telegram-cloner.git
+
+cd Telegram-cloner
+```
+
+## 🛠 Configuration
+
+### 1. Set Up Your Environment File
+
+Copy the template file to create your `.env` configuration:
 
 ```bash
-git clone https://github.com/darshitmachhi/telegram-clone.git
-cd telegram-clone
-
-# Create virtual environment
-python -m venv .venv
-
-# Activate virtual environment
-# Windows (PowerShell):
-.\.venv\Scripts\Activate.ps1
-# Linux / macOS:
-source .venv/bin/activate
-
-# Install requirements
-pip install -r requirements.txt
-
-Step 2: Get Your Telegram API Credentials
-Go to https://my.telegram.org and log in with your phone number.
-Click API Development Tools.
-Create an application (enter any short name/title).
-Copy your api_id and api_hash.
-Step 3: Configure Your .env File
-Copy .env.example to create .env:
-
-bash
-
-
 cp .env.example .env
-Open .env in any text editor and fill in your credentials:
+```
 
-env
+Open `.env` in your text editor and fill in your credentials:
 
+- `API_ID` and `API_HASH` - Get these from [my.telegram.org](https://my.telegram.org/)
+- `PHONE` - Your phone number with country code (e.g. `+1234567890`)
+- `SOURCE_CHANNEL` & `DEST_CHANNEL` - Source and target channel usernames or numeric IDs.
 
-API_ID=12345678
-API_HASH=your_api_hash_here
-PHONE=+1234567890
-Step 4: Launching the App
-Option A: Web Interface (Recommended)
-Start the web server:
+## 🐍 Virtual Environment Setup
 
-bash
+It's highly recommended to use a virtual environment to avoid dependency conflicts.
 
+### 1. Create a Virtual Environment
 
+**Windows**
+
+```sh
+python -m venv .venv
+```
+
+**macOS and Linux**
+
+```sh
+python3 -m venv .venv
+```
+
+### 2. Activate Virtual Environment
+
+**Windows**
+
+```powershell
+.\.venv\Scripts\activate
+```
+
+**macOS and Linux**
+
+```bash
+source .venv/bin/activate
+```
+
+## 📦 Install Dependencies
+
+Install all required dependencies (including Telethon, Flask, tqdm, and Cryptg):
+
+```bash
+pip install -r requirements.txt
+```
+
+## 🚀 Running the App
+
+### Option A: Web Interface Dashboard (Default)
+
+Launch the web app and open `http://localhost:5000` in your browser:
+
+**Windows**
+
+```powershell
 python src/telegram_clone/main.py
-Open http://localhost:5000 in your browser.
-Select your Source Channel (and optional Source Forum Topic).
-Select your Destination Channel (and optional Destination Forum Topic).
-Choose Plain Forward mode.
-Set Batch Size Limit (e.g. 100) and Anti-Ban Delay (e.g. 5 seconds).
-Click ▶ Start Clone.
-Option B: Command Line Interface (CLI)
-Run high-speed batch forwarding directly in CLI mode:
+```
 
-bash
+**macOS and Linux**
 
+```bash
+python3 src/telegram_clone/main.py
+```
 
-# Forward 100 messages with 5-second anti-ban delay
+### Option B: Command Line Interface (CLI)
+
+Run directly in the console with CLI options:
+
+```bash
+# Start interactive CLI mode
+python src/telegram_clone/main.py --cli
+
+# High-speed batch forward with anti-ban pacing (100 msgs/batch, 5s delay)
 python src/telegram_clone/main.py --cli --mode forward --batch-delay 5.0 --max-messages 100
-# Clone specific forum topics (e.g. Source Topic ID 7 to Dest Topic ID 12)
-python src/telegram_clone/main.py --cli --source-topic 7 --dest-topic 12
-💡 How Pause & Resume Works
-Whenever you specify a batch limit (e.g. 100), the app forwards 100 files, records their IDs, and stops.
-To continue, simply click Start Clone again or re-run the CLI command.
-The app automatically loads the database, skips the first 100 messages, and resumes from message #101 seamlessly!
-🔒 Safe Use & Anti-Ban Best Practices
-Use Plain Forward mode for instant server-side copying.
-Keep Anti-Ban Delay at 5.0 seconds or higher when forwarding large volumes of files.
-The app automatically detects invalid service messages (like pinned message alerts) and skips them without getting stuck in retry loops.
-🌐 GitHub Repository & Contributions
-Source code is available on GitHub: [GitHub Repository Link]
 
-Feel free to check out the repo, open issues, or submit PRs! Star ⭐ if you find it helpful!
+# Clone specific forum topics
+python src/telegram_clone/main.py --cli --source-topic 7 --dest-topic 12
+```
+
+## 🛠 Troubleshooting
+
+- **Database Lock**: The database is patched to use WAL mode. If you see lock warnings, make sure only one instance (either Web UI or CLI) is running at the same time.
+- **Message ID Invalid**: The cloner automatically detects system service messages (e.g. title changes, pins) and skips them without getting stuck in retry loops.
+
+## ❤️ Support
+
+If you find this project useful, please ⭐️ star the repository to show your support!
+
+Made with ❤️ by darshitmachhi
